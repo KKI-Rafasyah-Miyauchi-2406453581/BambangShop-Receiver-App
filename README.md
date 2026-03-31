@@ -85,5 +85,7 @@ This is the place for you to write reflections:
 ### Mandatory (Subscriber) Reflections
 
 #### Reflection Subscriber-1
+1. I think using RwLock makes sense here because our app will definitely be reading the list of notifications way more often than adding new ones to it. RwLock lets multiple threads read the Vec at the exact same time without blocking each other. If we just used a standard Mutex, it would lock the entire list even if a user just wanted to view their messages. That means multiple users trying to check their notifications at the same time would get queued up waiting for each other. With RwLock, it only actually locks everyone out during the split second when a new notification is being appended to the list.
+2. Even though Java let us mutate global static variables easily, I know in Rust that doing so is a massive data race hazard. Rust's whole ownership and borrowing system is specifically built to prevent these kinds of memory safety issues at compile time. Since multiple threads in our web framework could try to change a standard global variable at the exact same time, Rust strictly forbids it by default because it's not thread-safe. That's why we have to use lazy_static to safely initialize the list at runtime, and wrap it in an RwLock so the compiler has  proof that we are managing concurrent access safely.
 
 #### Reflection Subscriber-2
